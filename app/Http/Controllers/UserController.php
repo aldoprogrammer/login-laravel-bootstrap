@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -26,7 +27,7 @@ class UserController extends Controller
         $user = new User([
             'name' => $request->name,
             'username' => $request->username,
-            'password' => Hash::make($request->username)
+            'password' => Hash::make($request->password)
         ]);
 
         $user->save();
@@ -37,6 +38,24 @@ class UserController extends Controller
     {
         $data['title'] = 'Login';
         return view('user/login', $data);
+    }
+
+    public function login_action(Request $request)
+    {
+        $request->validate([
+            'username' => 'required',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt([
+            'username' => $request->username,
+            'password' => $request->password
+        ])) {
+            $request->session()->regenerate();
+            return redirect()->intended('/');
+        }
+
+        return back()->withErrors(['password' => 'Wrong username or password']);
     }
 
 }
